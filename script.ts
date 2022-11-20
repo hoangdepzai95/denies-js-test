@@ -162,6 +162,7 @@ async function onSubmit() {
     }
 }
 
+// Use fetch for mordern browser, could be replaced with XMLHttpsRequest
 async function getProducts() {
     const products = await (await fetch('https://depositfix.mocklab.io/products')).json();
     AppState.products = products
