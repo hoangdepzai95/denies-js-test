@@ -14,14 +14,14 @@ interface GeoIp {
 }
 
 interface State {
-    selectedProductId?: number;
+    selectedProduct?: Product;
     qty?: number,
     products: Product[];
     geoIp?: GeoIp;
 }
 
 const AppState: State = {
-    selectedProductId: undefined,
+    selectedProduct: undefined,
     qty: undefined,
     products: [],
     geoIp: undefined
@@ -43,10 +43,15 @@ async function renderApp(selector: string) {
 }
 
 async function fetchData() {
-    await Promise.all([
-        getProducts(),
-        getGeoIp()
-    ])
+    try {
+        await Promise.all([
+            getProducts(),
+            getGeoIp()
+        ])
+    } catch (e) {
+        alert('Error on initiate data')
+        throw e
+    }
 }
 
 function renderForm(): Element {
@@ -75,7 +80,7 @@ function renderProductOptions() {
     productSelectElement.className = 'product-select'
 
     productSelectElement.onchange = () => {
-        AppState.selectedProductId = parseInt(productSelectElement.value)
+        AppState.selectedProduct = AppState.products.find(o => o.id === parseInt(productSelectElement.value))
         updateTotal()
     }
 
@@ -88,7 +93,7 @@ function renderProductOptions() {
 
     // Default select for product
     if (AppState.products.length) {
-        AppState.selectedProductId = AppState.products[0].id
+        AppState.selectedProduct = AppState.products[0]
     }
 
     return productSelectElement
@@ -118,16 +123,17 @@ function renderTotal() {
 
 function updateTotal() {
     const el = document.getElementById('order-total')
-    const selectedProduct = AppState.products.find(o => o.id === AppState.selectedProductId)
 
-    if (el && selectedProduct) {
-        const value = formatPrice(selectedProduct.amount * (AppState.qty || 0), selectedProduct.currency)
+    if (el && AppState.selectedProduct) {
+        const value = formatPrice(AppState.selectedProduct.amount * (AppState.qty || 0), AppState.selectedProduct.currency)
         el.innerHTML = `Total: ${value}`
     }
 }
 
 function renderSubmitBtn() {
-    const el = document.createElement('button')
+    const el = document.createElement('button', {
+
+    })
     el.innerText = 'Submit'
 
     el.onclick = (e) => {
@@ -139,8 +145,14 @@ function renderSubmitBtn() {
 }
 
 async function onSubmit() {
+
     if (!AppState.qty) {
         alert('Please enter quantity')
+        return
+    }
+
+    if (!AppState.selectedProduct) {
+        alert('Please select a product')
         return
     }
 
@@ -151,7 +163,13 @@ async function onSubmit() {
                 'Content-Type': 'application/json'
             },
             method: 'POST',
-            body: JSON.stringify({ productId: AppState.selectedProductId, quantity: AppState.qty, userCountry: AppState.geoIp?.country_name, candidateName: 'Hoang Nguyen' })
+            body: JSON.stringify({
+                productId: AppState.selectedProduct.id,
+                quantity: AppState.qty,
+                userCountry: AppState.geoIp?.country_name,
+                candidateName: 'Hoang Nguyen',
+                amount: AppState.qty * AppState.selectedProduct.amount
+            })
         })
 
         alert('Order sumbbited')

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const AppState = {
-    selectedProductId: undefined,
+    selectedProduct: undefined,
     qty: undefined,
     products: [],
     geoIp: undefined
@@ -28,10 +28,16 @@ function renderApp(selector) {
 }
 function fetchData() {
     return __awaiter(this, void 0, void 0, function* () {
-        yield Promise.all([
-            getProducts(),
-            getGeoIp()
-        ]);
+        try {
+            yield Promise.all([
+                getProducts(),
+                getGeoIp()
+            ]);
+        }
+        catch (e) {
+            alert('Error on initiate data');
+            throw e;
+        }
     });
 }
 function renderForm() {
@@ -54,7 +60,7 @@ function renderProductOptions() {
     const productSelectElement = document.createElement('select');
     productSelectElement.className = 'product-select';
     productSelectElement.onchange = () => {
-        AppState.selectedProductId = parseInt(productSelectElement.value);
+        AppState.selectedProduct = AppState.products.find(o => o.id === parseInt(productSelectElement.value));
         updateTotal();
     };
     for (let product of AppState.products) {
@@ -65,7 +71,7 @@ function renderProductOptions() {
     }
     // Default select for product
     if (AppState.products.length) {
-        AppState.selectedProductId = AppState.products[0].id;
+        AppState.selectedProduct = AppState.products[0];
     }
     return productSelectElement;
 }
@@ -88,14 +94,13 @@ function renderTotal() {
 }
 function updateTotal() {
     const el = document.getElementById('order-total');
-    const selectedProduct = AppState.products.find(o => o.id === AppState.selectedProductId);
-    if (el && selectedProduct) {
-        const value = formatPrice(selectedProduct.amount * (AppState.qty || 0), selectedProduct.currency);
+    if (el && AppState.selectedProduct) {
+        const value = formatPrice(AppState.selectedProduct.amount * (AppState.qty || 0), AppState.selectedProduct.currency);
         el.innerHTML = `Total: ${value}`;
     }
 }
 function renderSubmitBtn() {
-    const el = document.createElement('button');
+    const el = document.createElement('button', {});
     el.innerText = 'Submit';
     el.onclick = (e) => {
         e.preventDefault();
@@ -110,6 +115,10 @@ function onSubmit() {
             alert('Please enter quantity');
             return;
         }
+        if (!AppState.selectedProduct) {
+            alert('Please select a product');
+            return;
+        }
         try {
             yield fetch('https://depositfix.mocklab.io/order', {
                 headers: {
@@ -117,7 +126,13 @@ function onSubmit() {
                     'Content-Type': 'application/json'
                 },
                 method: 'POST',
-                body: JSON.stringify({ productId: AppState.selectedProductId, quantity: AppState.qty, userCountry: (_a = AppState.geoIp) === null || _a === void 0 ? void 0 : _a.country_name, candidateName: 'Hoang Nguyen' })
+                body: JSON.stringify({
+                    productId: AppState.selectedProduct.id,
+                    quantity: AppState.qty,
+                    userCountry: (_a = AppState.geoIp) === null || _a === void 0 ? void 0 : _a.country_name,
+                    candidateName: 'Hoang Nguyen',
+                    amount: AppState.qty * AppState.selectedProduct.amount
+                })
             });
             alert('Order sumbbited');
         }
@@ -127,6 +142,7 @@ function onSubmit() {
         }
     });
 }
+// Use fetch for mordern browser, could be replaced with XMLHttpsRequest
 function getProducts() {
     return __awaiter(this, void 0, void 0, function* () {
         const products = yield (yield fetch('https://depositfix.mocklab.io/products')).json();
