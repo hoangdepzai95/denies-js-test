@@ -126,7 +126,7 @@ function updateTotal() {
 
     if (el && AppState.selectedProduct) {
         const value = formatPrice(AppState.selectedProduct.amount * (AppState.qty || 0), AppState.selectedProduct.currency)
-        el.innerHTML = `Total: ${value}`
+        el.innerText = `Total: ${value}`
     }
 }
 
