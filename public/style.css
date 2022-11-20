@@ -1,0 +1,19 @@
+.order-form {
+    width: 400px;
+    max-width: 90vw;
+}
+
+#root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+}
+.product-select {
+    width: 100%;
+}
