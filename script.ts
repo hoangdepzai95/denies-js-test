@@ -145,7 +145,7 @@ async function onSubmit() {
     }
 
     try {
-        await fetch('http://depositfix.mocklab.io/order', {
+        await fetch('https://depositfix.mocklab.io/order', {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -153,7 +153,7 @@ async function onSubmit() {
             method: 'POST',
             body: JSON.stringify({ productId: AppState.selectedProductId, quantity: AppState.qty, userCountry: AppState.geoIp?.country_name, candidateName: 'Hoang Nguyen' })
         })
-        
+
         alert('Order sumbbited')
 
     } catch (e) {

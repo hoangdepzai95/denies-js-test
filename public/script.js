@@ -111,7 +111,7 @@ function onSubmit() {
             return;
         }
         try {
-            yield fetch('http://depositfix.mocklab.io/order', {
+            yield fetch('https://depositfix.mocklab.io/order', {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
